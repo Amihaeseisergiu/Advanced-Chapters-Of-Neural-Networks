@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Draw app</title>
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>  
+</head>
+<body style="background-color: grey;">
+
+<div>
+	<canvas id="canvas" width="28" height="28" style="width:600px; height:600px;"></canvas>
+	<div style="display: flex; align-items:center;">
+		<button style="padding:15px; border-radius: 10px;" onclick="clearCanvas()">Clear Canvas</button>
+		<div style="padding:15px; border-radius: 10px; display: flex; align-items: center;">
+			<h2>Prediction:</h2>
+			<h2 id="prediction" style="padding-left: 5px;">None<h2>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	let canvas = document.getElementById('canvas');
+
+	let ctx = canvas.getContext("2d");
+	ctx.fillStyle = "white";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	let pos = { x: 0, y: 0 };
+
+	window.addEventListener('resize', resize);
+	document.addEventListener('mousemove', draw);
+	document.addEventListener('mousedown', setPosition);
+	document.addEventListener('mouseenter', setPosition);
+
+	function clearCanvas()
+	{
+		ctx.fillStyle = "white";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		document.getElementById("prediction").innerText = "None";
+	}
+
+	function setPosition(e) {
+	  pos.x = e.clientX;
+	  pos.y = e.clientY;
+	}
+
+	function resize() {
+	  ctx.canvas.width = window.innerWidth;
+	  ctx.canvas.height = window.innerHeight;
+	}
+	
+	function transpose(matrix) {
+	  return matrix.reduce((prev, next) => next.map((item, i) =>
+		(prev[i] || []).concat(next[i])
+	  ), []);
+	}
+	
+	function to1d(arrToConvert)
+	{
+		var newArr = [];
+
+		for(var i = 0; i < arrToConvert.length; i++)
+		{
+			newArr = newArr.concat(arrToConvert[i]);
+		}
+		
+		return newArr;
+	}
+	
+	function sendData()
+	{
+		let matrix = [];
+		
+		for(let i = 0; i < 28; i++){
+			matrix[i] = [];
+			for(let j = 0; j < 28; j++){
+				let imageData = ctx.getImageData(i, j, 1, 1);
+				let data = imageData.data;
+				matrix[i][j] = 1 - (data[0] / 255);
+			}
+		}
+
+		fetch('http://localhost:5000/predict', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(to1d(transpose(matrix))),
+		})
+		.then(response => response.json())
+		.then(data => {
+			document.getElementById("prediction").innerText = data;
+		})
+		.catch((error) => {
+			document.getElementById("prediction").innerText = "Error";
+		});
+	}
+
+	canvas.addEventListener('mouseup', function() {
+		sendData()
+	})
+
+	function draw(e) {
+	  if (e.buttons !== 1) return;
+
+	  ctx.beginPath();
+
+	  ctx.lineWidth = 2;
+	  ctx.lineCap = 'round';
+	  ctx.strokeStyle = 'black';
+
+	  ctx.moveTo(pos.x / 21.4285714286, pos.y / 21.4285714286);
+	  setPosition(e);
+	  ctx.lineTo(pos.x / 21.4285714286, pos.y / 21.4285714286);
+
+	  ctx.stroke();
+	}
+
+</script>
+
+</body>
+</html>
