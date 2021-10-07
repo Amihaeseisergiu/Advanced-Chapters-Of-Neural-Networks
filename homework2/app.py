@@ -3,19 +3,10 @@ from flask import make_response, jsonify
 from flask_cors import CORS
 import numpy as np, pickle, gzip
 from numpy.random import uniform as runi
+from hw2 import DigitNetwork
 
-class DigitNetwork:
-    def __init__(self):
-        with open('./weights.npy', 'rb') as f:
-            self.weights = np.load(f)
-        
-        with open('./biases.npy', 'rb') as f:
-            self.biases = np.load(f)
-
-    def classify(self, input):
-        return np.argmax(np.dot(self.weights, input) + self.biases)
-
-digitNetwork = DigitNetwork()
+digitNetwork = DigitNetwork(noParameters=True)
+digitNetwork.load()
 
 app = Flask(__name__)
 CORS(app)

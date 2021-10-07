@@ -10,18 +10,20 @@ class Utils:
         return train_set, valid_set, test_set
 
 class DigitNetwork:
-    def __init__(self, inputs, labels):
-        self.inputs = inputs
-        self.nrInputs = len(self.inputs)
-        self.inputSize = len(inputs[0])
-        self.labels = labels
-        self.nrPerceptrons = 10
-        self.nrDigits = 10
+    def __init__(self, inputs=None, labels=None, noParameters=False):
 
-        self.weights = runi(0, 1, (self.nrPerceptrons, self.inputSize))
-        self.biases = np.random.uniform(0, 1, self.nrPerceptrons)
-        self.targets = np.zeros((self.nrDigits, self.nrDigits))
-        np.fill_diagonal(self.targets, 1)
+        if not noParameters:
+            self.inputs = inputs
+            self.nrInputs = len(self.inputs)
+            self.inputSize = len(inputs[0])
+            self.labels = labels
+            self.nrPerceptrons = 10
+            self.nrDigits = 10
+
+            self.weights = runi(0, 1, (self.nrPerceptrons, self.inputSize))
+            self.biases = np.random.uniform(0, 1, self.nrPerceptrons)
+            self.targets = np.zeros((self.nrDigits, self.nrDigits))
+            np.fill_diagonal(self.targets, 1)
     
     def activate(self, input):
         if input > 0:
@@ -71,9 +73,10 @@ class DigitNetwork:
         
         with open('./biases.npy', 'rb') as f:
             self.biases = np.load(f)
-        
-train_set, valid_set, test_set = Utils.readData('./mnist.pkl.gz')
 
-network = DigitNetwork(train_set[0], train_set[1])
-network.train(3, 0.02)
-network.test(test_set[0], test_set[1])
+if __name__ == '__main__':
+    train_set, valid_set, test_set = Utils.readData('./mnist.pkl.gz')
+
+    network = DigitNetwork(train_set[0], train_set[1])
+    network.train(3, 0.02)
+    network.test(test_set[0], test_set[1])
