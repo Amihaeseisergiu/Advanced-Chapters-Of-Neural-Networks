@@ -22,8 +22,7 @@ class DigitNetwork:
 
             self.weights = runi(0, 1, (self.nrPerceptrons, self.inputSize))
             self.biases = np.random.uniform(0, 1, self.nrPerceptrons)
-            self.targets = np.zeros((self.nrDigits, self.nrDigits))
-            np.fill_diagonal(self.targets, 1)
+            self.targets = np.eye(self.nrDigits)
     
     def activate(self, input):
         if input > 0:
@@ -58,7 +57,7 @@ class DigitNetwork:
             if self.classify(inputs[i]) == labels[i]:
                 correctlyClassified += 1
         
-        print(f"Correctly classified {100.0 * correctlyClassified / len(inputs)}%")
+        print(f"Correctly classified {(correctlyClassified / len(inputs)) * 100}%")
 
     def save(self):
         with open('./weights.npy', 'wb') as f:
