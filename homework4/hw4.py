@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[64]:
+# In[123]:
 
 
 import keras
@@ -12,21 +12,22 @@ from keras.callbacks import ReduceLROnPlateau, LearningRateScheduler
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from keras.datasets import cifar10
-from keras.optimizers import Adam
+from keras.optimizers import SGD
 from keras.regularizers import l2
 from keras.models import Model
 from keras.layers import add
 
 
-# In[65]:
+# In[124]:
 
 
-batch_size = 32
-epochs = 200
+batch_size = 128
+epochs = 182
 n_classes = 10
+learning_rate = 1e-1
 
 
-# In[66]:
+# In[125]:
 
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -35,7 +36,7 @@ y_train = to_categorical(y_train, n_classes)
 y_test = to_categorical(y_test, n_classes)
 
 
-# In[67]:
+# In[126]:
 
 
 class Resnet:
@@ -98,7 +99,7 @@ class Resnet:
 
         shortcut = self.layer(shortcut, n_filters,
                               kernel_size=1, strides=strides,
-                              activation=None, normalize_batch=False)
+                              activation=None)
 
         block = Add()([shortcut, block])
 
@@ -109,7 +110,7 @@ class Resnet:
     
         convolution = Conv2D(n_filters, kernel_size=kernel_size,
                              strides=strides, padding='same',
-                             kernel_initializer='he_normal',
+                             kernel_initializer="he_normal",
                              kernel_regularizer=l2(1e-4))
 
         x = convolution(inputs)
@@ -123,35 +124,35 @@ class Resnet:
         return x
     
 def learning_rate_schedule(epoch):
-    learning_rate = 1e-3
+    new_learning_rate = learning_rate
 
-    if epoch > 180:
-        learning_rate *= 0.5e-3
-    elif epoch > 160:
-        learning_rate *= 1e-3
-    elif epoch > 120:
-        learning_rate *= 1e-2
-    elif epoch > 80:
-        learning_rate *= 1e-1
+    if epoch <= 91:
+        pass
+    elif epoch > 91 and epoch <= 137:
+        new_learning_rate = learning_rate * 0.1
+    else:
+        new_learning_rate = learning_rate * 0.01
+        
+    print('Learning rate:', new_learning_rate)
+    
+    return new_learning_rate
 
-    return learning_rate
 
-
-# In[68]:
+# In[127]:
 
 
 resnet = Resnet()
 
 model = resnet.get_model()
 
-optimizer = Adam(learning_rate_schedule(0))
+optimizer = SGD(learning_rate=learning_rate, momentum=0.9)
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizer, metrics=['accuracy'])
 
 model.summary()
 
 
-# In[69]:
+# In[128]:
 
 
 lr_scheduler = LearningRateScheduler(learning_rate_schedule)
@@ -159,8 +160,8 @@ lr_reducer = ReduceLROnPlateau(factor=0.001, patience=3, min_lr=1e-5)
 
 callbacks = [lr_reducer, lr_scheduler]
 
-datagen = ImageDataGenerator(width_shift_range=0.1,
-                             height_shift_range=0.1,
+datagen = ImageDataGenerator(width_shift_range=4,
+                             height_shift_range=4,
                              rotation_range=20,
                              zoom_range=0.1,
                              horizontal_flip=True)
