@@ -1,33 +1,38 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[123]:
+# In[515]:
 
 
+"""
+References:
+https://arxiv.org/pdf/1512.03385.pdf
+https://arxiv.org/pdf/1604.04112v4.pdf
+https://github.com/yu4u/cutout-random-erasing
+"""
 import keras
 import numpy as np
 from keras.layers import Add, Dense, Conv2D, BatchNormalization
 from keras.layers import Activation, AveragePooling2D, Input, Flatten
-from keras.callbacks import ReduceLROnPlateau, LearningRateScheduler
+from keras.callbacks import LearningRateScheduler
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from keras.datasets import cifar10
 from keras.optimizers import SGD
 from keras.regularizers import l2
 from keras.models import Model
-from keras.layers import add
 
 
-# In[124]:
+# In[516]:
 
 
 batch_size = 128
-epochs = 182
+epochs = 180
 n_classes = 10
-learning_rate = 1e-1
+learning_rate = 0.1
 
 
-# In[125]:
+# In[517]:
 
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -36,7 +41,7 @@ y_train = to_categorical(y_train, n_classes)
 y_test = to_categorical(y_test, n_classes)
 
 
-# In[126]:
+# In[518]:
 
 
 class Resnet:
@@ -126,9 +131,9 @@ class Resnet:
 def learning_rate_schedule(epoch):
     new_learning_rate = learning_rate
 
-    if epoch <= 91:
+    if epoch <= 90:
         pass
-    elif epoch > 91 and epoch <= 137:
+    elif epoch > 90 and epoch <= 140:
         new_learning_rate = learning_rate * 0.1
     else:
         new_learning_rate = learning_rate * 0.01
@@ -137,8 +142,45 @@ def learning_rate_schedule(epoch):
     
     return new_learning_rate
 
+def get_random_eraser(p=0.5, s_l=0.02, s_h=0.4, r_1=0.3, r_2=1/0.3, v_l=0, v_h=255, pixel_level=False):
+    def eraser(input_img):
+        if input_img.ndim == 3:
+            img_h, img_w, img_c = input_img.shape
+        elif input_img.ndim == 2:
+            img_h, img_w = input_img.shape
 
-# In[127]:
+        p_1 = np.random.rand()
+
+        if p_1 > p:
+            return input_img
+
+        while True:
+            s = np.random.uniform(s_l, s_h) * img_h * img_w
+            r = np.random.uniform(r_1, r_2)
+            w = int(np.sqrt(s / r))
+            h = int(np.sqrt(s * r))
+            left = np.random.randint(0, img_w)
+            top = np.random.randint(0, img_h)
+
+            if left + w <= img_w and top + h <= img_h:
+                break
+
+        if pixel_level:
+            if input_img.ndim == 3:
+                c = np.random.uniform(v_l, v_h, (h, w, img_c))
+            if input_img.ndim == 2:
+                c = np.random.uniform(v_l, v_h, (h, w))
+        else:
+            c = np.random.uniform(v_l, v_h)
+
+        input_img[top:top + h, left:left + w] = c
+
+        return input_img
+
+    return eraser
+
+
+# In[519]:
 
 
 resnet = Resnet()
@@ -152,19 +194,16 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 
 
-# In[128]:
+# In[520]:
 
 
 lr_scheduler = LearningRateScheduler(learning_rate_schedule)
-lr_reducer = ReduceLROnPlateau(factor=0.001, patience=3, min_lr=1e-5)
-
-callbacks = [lr_reducer, lr_scheduler]
+callbacks = [lr_scheduler]
 
 datagen = ImageDataGenerator(width_shift_range=4,
                              height_shift_range=4,
-                             rotation_range=20,
-                             zoom_range=0.1,
-                             horizontal_flip=True)
+                             horizontal_flip=True,
+                             preprocessing_function=get_random_eraser(pixel_level=True))
 datagen.fit(x_train)
 
 model.fit(datagen.flow(x_train, y_train, batch_size=batch_size),
