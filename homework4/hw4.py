@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[515]:
+# In[20]:
 
 
 """
@@ -23,7 +23,7 @@ from keras.regularizers import l2
 from keras.models import Model
 
 
-# In[516]:
+# In[21]:
 
 
 batch_size = 128
@@ -32,7 +32,7 @@ n_classes = 10
 learning_rate = 0.1
 
 
-# In[517]:
+# In[22]:
 
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -41,7 +41,7 @@ y_train = to_categorical(y_train, n_classes)
 y_test = to_categorical(y_test, n_classes)
 
 
-# In[518]:
+# In[23]:
 
 
 class Resnet:
@@ -180,7 +180,7 @@ def get_random_eraser(p=0.5, s_l=0.02, s_h=0.4, r_1=0.3, r_2=1/0.3, v_l=0, v_h=2
     return eraser
 
 
-# In[519]:
+# In[24]:
 
 
 resnet = Resnet()
@@ -194,7 +194,7 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 
 
-# In[520]:
+# In[25]:
 
 
 lr_scheduler = LearningRateScheduler(learning_rate_schedule)
@@ -203,7 +203,7 @@ callbacks = [lr_scheduler]
 datagen = ImageDataGenerator(width_shift_range=4,
                              height_shift_range=4,
                              horizontal_flip=True,
-                             preprocessing_function=get_random_eraser(pixel_level=True))
+                             preprocessing_function=get_random_eraser(p=1, pixel_level=True))
 datagen.fit(x_train)
 
 model.fit(datagen.flow(x_train, y_train, batch_size=batch_size),
