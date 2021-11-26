@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[20]:
+# In[1]:
 
 
 """
@@ -10,20 +10,19 @@ https://arxiv.org/pdf/1512.03385.pdf
 https://arxiv.org/pdf/1604.04112v4.pdf
 https://github.com/yu4u/cutout-random-erasing
 """
-import keras
 import numpy as np
-from keras.layers import Add, Dense, Conv2D, BatchNormalization
-from keras.layers import Activation, AveragePooling2D, Input, Flatten
-from keras.callbacks import LearningRateScheduler
-from keras.preprocessing.image import ImageDataGenerator
-from keras.utils import to_categorical
-from keras.datasets import cifar10
-from keras.optimizers import SGD
-from keras.regularizers import l2
-from keras.models import Model
+from tensorflow.keras.layers import Add, Dense, Conv2D, BatchNormalization
+from tensorflow.keras.layers import Activation, AveragePooling2D, Input, Flatten
+from tensorflow.keras.callbacks import LearningRateScheduler
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.models import Model
 
 
-# In[21]:
+# In[2]:
 
 
 batch_size = 128
@@ -32,7 +31,7 @@ n_classes = 10
 learning_rate = 0.1
 
 
-# In[22]:
+# In[3]:
 
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -41,7 +40,7 @@ y_train = to_categorical(y_train, n_classes)
 y_test = to_categorical(y_test, n_classes)
 
 
-# In[23]:
+# In[4]:
 
 
 class Resnet:
@@ -180,7 +179,7 @@ def get_random_eraser(p=0.5, s_l=0.02, s_h=0.4, r_1=0.3, r_2=1/0.3, v_l=0, v_h=2
     return eraser
 
 
-# In[24]:
+# In[5]:
 
 
 resnet = Resnet()
@@ -194,7 +193,7 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 
 
-# In[25]:
+# In[6]:
 
 
 lr_scheduler = LearningRateScheduler(learning_rate_schedule)
