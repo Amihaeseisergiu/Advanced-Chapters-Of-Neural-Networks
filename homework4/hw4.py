@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[19]:
 
 
 """
@@ -22,7 +22,7 @@ from tensorflow.keras.regularizers import l2
 from tensorflow.keras.models import Model
 
 
-# In[2]:
+# In[20]:
 
 
 batch_size = 128
@@ -31,7 +31,7 @@ n_classes = 10
 learning_rate = 0.1
 
 
-# In[3]:
+# In[21]:
 
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -40,7 +40,7 @@ y_train = to_categorical(y_train, n_classes)
 y_test = to_categorical(y_test, n_classes)
 
 
-# In[4]:
+# In[22]:
 
 
 class Resnet:
@@ -130,9 +130,9 @@ class Resnet:
 def learning_rate_schedule(epoch):
     new_learning_rate = learning_rate
 
-    if epoch <= 90:
+    if epoch <= 100:
         pass
-    elif epoch > 90 and epoch <= 140:
+    elif epoch > 100 and epoch <= 150:
         new_learning_rate = learning_rate * 0.1
     else:
         new_learning_rate = learning_rate * 0.01
@@ -179,7 +179,7 @@ def get_random_eraser(p=0.5, s_l=0.02, s_h=0.4, r_1=0.3, r_2=1/0.3, v_l=0, v_h=2
     return eraser
 
 
-# In[5]:
+# In[23]:
 
 
 resnet = Resnet()
@@ -193,7 +193,7 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 
 
-# In[6]:
+# In[24]:
 
 
 lr_scheduler = LearningRateScheduler(learning_rate_schedule)
